@@ -1,16 +1,22 @@
-import java.awt.Dimension;
+import Utils.ColorProvider;
+import Utils.FontProvider;
+import Utils.ImagesLoader;
+import Utils.PropertiesLoader;
 
-import javax.swing.WindowConstants;
-
-import frames.MainFrame;
+import gui.GUIFrame;
 
 public class App {
 
     public static void main() {
-        MainFrame mainFrame = new MainFrame();
-        mainFrame.setVisible(true);
-    }
+        PropertiesLoader propManager = new PropertiesLoader();
 
+        FontProvider fontProvider = new FontProvider(propManager);
+        ColorProvider colorProvider = new ColorProvider(propManager);
+        ImagesLoader imagesLoader = new ImagesLoader();
+
+        GUIFrame GUIFrame = new GUIFrame(fontProvider, colorProvider, imagesLoader);
+        GUIFrame.setVisible(true);
+    }
 
     public static void main(String[] args) {
         java.awt.EventQueue.invokeLater(App::main);

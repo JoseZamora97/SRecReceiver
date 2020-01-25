@@ -1,4 +1,4 @@
-package frames;
+package gui;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
@@ -7,25 +7,17 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.FontFormatException;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
-import java.util.HashMap;
 
 import javax.swing.DefaultListModel;
-import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -39,53 +31,55 @@ import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
 import SRecProtocol.Server.SRecServer;
+import Utils.ColorProvider;
+import Utils.FontProvider;
+import Utils.ImagesLoader;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 
-public class MainFrame extends JFrame {
+public class GUIFrame extends JFrame {
 
-    /*** Labels ***/
     private JLabel lblLog, lblQR, lblServerConnections, lblTitle;
 
-    /*** Labels used as buttons ***/
     private JLabel btnStart;
 
-    /*** Text area ***/
     private JTextArea textLogs;
 
-    /*** List views ***/
     private JList<String> listConnections;
 
     private SRecServer sRecServer;
     private DefaultListModel<String> listModel;
 
-    private HashMap<String, Color> colors;
-    private HashMap<String, Font> fonts;
-
     private boolean isServerRunning = false;
 
-    /**
-     * Creates new form MainFrame
-     */
-    public MainFrame() {
-        initServerAndTriggers();
-        initColors();
-        initComponents();
-        initStdOutput();
-        initFonts();
+    private FontProvider fontProvider;
+    private ImagesLoader imagesLoader;
+    private ColorProvider colorProvider;
 
-        if(!this.fonts.isEmpty())
-            this.applyFonts();
-    }
-
-
-    private void initServerAndTriggers(){
+    public GUIFrame(FontProvider fontProvider, ColorProvider colorProvider, ImagesLoader imagesLoader) {
+        this.fontProvider = fontProvider;
+        this.colorProvider = colorProvider;
+        this.imagesLoader = imagesLoader;
 
         this.sRecServer = new SRecServer(55555);
-
-        ObservableList<InetAddress> obsListConnections = sRecServer.getServerConnectionService().getAliveConnections();
-
         this.listModel = new DefaultListModel<>();
+
+        init();
+    }
+
+    private void init() {
+        initComponents();
+        initStdOutput();
+        initListeners();
+
+        applyCustomFonts();
+        applyIcons();
+    }
+
+    private void initListeners(){
+
+        ObservableList<InetAddress> obsListConnections = sRecServer
+                .getServerConnectionService().getAliveConnections();
 
         obsListConnections.addListener((ListChangeListener<InetAddress>)(change) -> {
             while(change.next()) {
@@ -98,17 +92,20 @@ public class MainFrame extends JFrame {
                             listModel.removeElement(item.toString()));
             }
         });
+
+        btnStart.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnStartMouseClicked();
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btnStart.setBackground(colorProvider.getColor("colorAccentDark"));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btnStart.setBackground(colorProvider.getColor("colorAccent"));
+            }
+        });
     }
 
-    private ImageIcon generateQRCode(String text) throws WriterException {
-        MultiFormatWriter mfw = new MultiFormatWriter();
-        BitMatrix bitMatriz = mfw.encode(text, BarcodeFormat.QR_CODE, 200, 200);
-        BufferedImage bi = MatrixToImageWriter.toBufferedImage(bitMatriz);
-
-        return new ImageIcon(bi);
-    }
-
-    /** Triggers **/
     private void btnStartMouseClicked() {
         if(!isServerRunning){
             try {
@@ -134,12 +131,21 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void btnStartMouseEntered() {
-        btnStart.setBackground(this.colors.get("colorAccentDark"));
+    private ImageIcon generateQRCode(String text) throws WriterException {
+        MultiFormatWriter mfw = new MultiFormatWriter();
+        BitMatrix bitMatrix = mfw.encode(text, BarcodeFormat.QR_CODE, 200, 200);
+        BufferedImage bi = MatrixToImageWriter.toBufferedImage(bitMatrix);
+
+        return new ImageIcon(bi);
     }
 
-    private void btnStartMouseExited() {
-        btnStart.setBackground(this.colors.get("colorAccent"));
+    private void applyCustomFonts() {
+        lblServerConnections.setFont(fontProvider.getFont("nunito-bold").deriveFont(14f));
+        lblLog.setFont(fontProvider.getFont("nunito-bold").deriveFont(14f));
+        listConnections.setFont(fontProvider.getFont("nunito").deriveFont(12f));
+        textLogs.setFont(fontProvider.getFont("nunito").deriveFont(12f));
+        lblTitle.setFont(fontProvider.getFont("nunito-bold").deriveFont(18f));
+        btnStart.setFont(fontProvider.getFont("nunito-bold").deriveFont(16f));
     }
 
     private void initStdOutput() {
@@ -151,56 +157,6 @@ public class MainFrame extends JFrame {
         });
 
         System.setOut(printStream);
-    }
-
-    private void initColors() {
-        this.colors = new HashMap<>();
-
-        this.colors.put("colorAccent", new Color(203, 0, 23));
-        this.colors.put("colorPrimary", new Color(255,255,255));
-        this.colors.put("colorPrimaryDark", new Color(199,199,199));
-        this.colors.put("colorTitles", new Color(40,41,48));
-        this.colors.put("colorBodies", new Color(66,66,66));
-        this.colors.put("colorAccentDark", new Color(152, 1, 18));
-    }
-
-    private void initFonts() {
-
-        this.fonts = new HashMap<>();
-
-        try {
-
-            String a = "fonts/";
-
-            InputStream in;
-
-            in = new BufferedInputStream(
-                    new FileInputStream(a + "Nunito-Regular.ttf")
-            );
-            this.fonts.put("nunito", Font.createFont(Font.TRUETYPE_FONT, in ));
-
-
-            in = new BufferedInputStream(
-                    new FileInputStream(a + "Nunito-Bold.ttf")
-            );
-            this.fonts.put("nunito-bold", Font.createFont(Font.TRUETYPE_FONT, in));
-
-        } catch (FontFormatException | IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private void applyFonts() {
-        Font nunitoBold = this.fonts.get("nunito-bold");
-        Font nunito = this.fonts.get("nunito");
-
-        lblServerConnections.setFont(nunitoBold.deriveFont(14f));
-        lblLog.setFont(nunitoBold.deriveFont(14f));
-        listConnections.setFont(nunito.deriveFont(12f));
-        textLogs.setFont(nunito.deriveFont(12f));
-
-        lblTitle.setFont(nunitoBold.deriveFont(18f));
-        btnStart.setFont(nunitoBold.deriveFont(16f));
     }
 
     private void initComponents() {
@@ -241,47 +197,35 @@ public class MainFrame extends JFrame {
         textLogs = new JTextArea();
 
         /* Root Container Customization */
-        rootContainer.setPreferredSize(new java.awt.Dimension(600, 400));
-        rootContainer.setLayout(new java.awt.BorderLayout());
+        rootContainer.setPreferredSize(new Dimension(800, 600));
+        rootContainer.setLayout(new BorderLayout());
 
         /* Header Customization */
-        panelHeader.setBackground(new Color(203, 0, 23));
+        panelHeader.setBackground(colorProvider.getColor("colorAccent"));
         panelHeader.setPreferredSize(new Dimension(600, 70));
         panelHeader.setLayout(new BorderLayout());
 
         /* Label Title Customization */
         lblTitle.setText("SRec Receiver");
-        lblTitle.setBackground(new Color(255, 255, 255));
-        lblTitle.setFont(new Font("DejaVu Sans Condensed", Font.PLAIN, 17)); // NOI18N
-        lblTitle.setForeground(Color.white);
+        lblTitle.setFont(fontProvider.getFont("default").deriveFont(Font.PLAIN, 17));
+        lblTitle.setForeground(colorProvider.getColor("colorPrimary"));
         lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
         lblTitle.setPreferredSize(new Dimension(160, 22));
         panelHeader.add(lblTitle, BorderLayout.LINE_START);
 
         /* Label Title Customization */
-        btnStart.setBackground(new Color(203, 0, 23));
-        btnStart.setFont(new Font("DejaVu Sans Condensed", Font.BOLD, 18)); // NOI18N
-        btnStart.setForeground(Color.white);
+        btnStart.setBackground(colorProvider.getColor("colorAccent"));
+        btnStart.setFont(fontProvider.getFont("default").deriveFont(Font.PLAIN, 17));
+        btnStart.setForeground(colorProvider.getColor("colorPrimary"));
         btnStart.setHorizontalAlignment(SwingConstants.CENTER);
         btnStart.setText("Start");
         btnStart.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnStart.setOpaque(true);
-        btnStart.setPreferredSize(new Dimension(70, 70));
-        btnStart.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnStartMouseClicked();
-            }
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                btnStartMouseEntered();
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                btnStartMouseExited();
-            }
-        });
+        btnStart.setPreferredSize(new Dimension(125, 70));
         panelHeader.add(btnStart, BorderLayout.LINE_END);
 
         /* Label Title Customization */
-        panelShadowHeader.setBackground(new Color(199, 199, 199));
+        panelShadowHeader.setBackground(colorProvider.getColor("colorPrimaryDark"));
         panelShadowHeader.setPreferredSize(new Dimension(454, 1));
         panelHeader.add(panelShadowHeader, BorderLayout.PAGE_END);
         rootContainer.add(panelHeader, BorderLayout.PAGE_START);
@@ -295,30 +239,38 @@ public class MainFrame extends JFrame {
         /* Panel Connections and QR Image Customization */
         panelServerConnectionsAndImageContainer.setLayout(new BorderLayout());
 
+        JPanel panelLblServerConnections = new JPanel();
+        panelLblServerConnections.setLayout(new BorderLayout());
+        panelLblServerConnections.setBackground(colorProvider.getColor("colorPrimary"));
+        panelLblServerConnections.setPreferredSize(new Dimension(155, 50));
+        panelServerConnectionsAndImageContainer.add(panelLblServerConnections, BorderLayout.PAGE_START);
+
         /* Label Server Connections Customization*/
-        lblServerConnections.setBackground(Color.white);
-        lblServerConnections.setFont(new Font("DejaVu Sans Light", Font.BOLD, 14)); // NOI18N
-        lblServerConnections.setText("     Server Connections");
+        lblServerConnections.setBackground(colorProvider.getColor("colorPrimary"));
+        lblServerConnections.setFont(fontProvider.getFont("default").deriveFont(Font.BOLD, 14));
+        lblServerConnections.setText("Server Connections");
+        lblServerConnections.setIconTextGap(10);
         lblServerConnections.setOpaque(true);
-        lblServerConnections.setPreferredSize(new Dimension(133, 30));
-        panelServerConnectionsAndImageContainer.add(lblServerConnections, BorderLayout.PAGE_START);
+        lblServerConnections.setHorizontalAlignment(SwingConstants.CENTER);
+        lblServerConnections.setPreferredSize(new Dimension(175, 50));
+        panelLblServerConnections.add(lblServerConnections, BorderLayout.WEST);
 
         /* Label Server Connections And Image Customization */
-        panelServerConnectionsAndImage.setBackground(Color.white);
+        panelServerConnectionsAndImage.setBackground(colorProvider.getColor("colorPrimary"));
         panelServerConnectionsAndImage.setLayout(new GridLayout(1, 0));
 
         /* List Connections Customization */
-        listConnections.setFont(new Font("DejaVu Sans Light", Font.BOLD, 14)); // NOI18N
+        listConnections.setFont(fontProvider.getFont("default").deriveFont(Font.BOLD, 14));
         listConnections.setModel(listModel);
         listConnections.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         listConnections.setFocusable(false);
         listConnections.setRequestFocusEnabled(false);
-        listConnections.setSelectionBackground(new Color(199, 199, 199));
+        listConnections.setSelectionBackground(colorProvider.getColor("colorPrimaryDark"));
         scrollListConnections.setViewportView(listConnections);
         panelServerConnectionsAndImage.add(scrollListConnections);
 
         /* Label QR Customization */
-        lblQR.setBackground(Color.white);
+        lblQR.setBackground(colorProvider.getColor("colorPrimary"));
         lblQR.setHorizontalAlignment(SwingConstants.CENTER);
         lblQR.setFocusable(false);
         lblQR.setPreferredSize(new Dimension(100, 100));
@@ -327,12 +279,12 @@ public class MainFrame extends JFrame {
         panelServerConnectionsAndImageContainer.add(panelServerConnectionsAndImage, BorderLayout.CENTER);
 
         /* Space */
-        panelSpaceLeft.setBackground(new Color(255, 255, 255));
+        panelSpaceLeft.setBackground(colorProvider.getColor("colorPrimary"));
         panelSpaceLeft.setPreferredSize(new Dimension(10, 10));
         panelServerConnectionsAndImageContainer.add(panelSpaceLeft, BorderLayout.LINE_START);
 
         /* Space */
-        panelSpaceBottom.setBackground(new Color(255, 255, 255));
+        panelSpaceBottom.setBackground(colorProvider.getColor("colorPrimary"));
         panelSpaceBottom.setPreferredSize(new Dimension(10, 10));
         panelServerConnectionsAndImageContainer.add(panelSpaceBottom, BorderLayout.SOUTH);
 
@@ -340,19 +292,27 @@ public class MainFrame extends JFrame {
 
         panelLogContainer.setLayout(new BorderLayout());
 
-        lblLog.setBackground(Color.white);
-        lblLog.setFont(new Font("DejaVu Sans Light", Font.BOLD, 14)); // NOI18N
-        lblLog.setText("     Log");
+        JPanel panelLblLog = new JPanel();
+        panelLblLog.setLayout(new BorderLayout());
+        panelLblLog.setBackground(colorProvider.getColor("colorPrimary"));
+        panelLblLog.setPreferredSize(new Dimension(100, 50));
+        panelLogContainer.add(panelLblLog, BorderLayout.PAGE_START);
+
+        lblLog.setBackground(colorProvider.getColor("colorPrimary"));
+        lblLog.setFont(fontProvider.getFont("default").deriveFont(Font.BOLD, 14));
+        lblLog.setText("Log");
+        lblLog.setIconTextGap(10);
         lblLog.setOpaque(true);
-        lblLog.setPreferredSize(new Dimension(26, 30));
-        panelLogContainer.add(lblLog, BorderLayout.PAGE_START);
+        lblLog.setHorizontalAlignment(SwingConstants.CENTER);
+        lblLog.setPreferredSize(new Dimension(70, 50));
+        panelLblLog.add(lblLog, BorderLayout.WEST);
 
         /* Text Logs Area Customization */
         textLogs.setEditable(false);
-        textLogs.setBackground(new Color(66, 66, 66));
+        textLogs.setBackground(colorProvider.getColor("colorBodies"));
         textLogs.setColumns(20);
-        textLogs.setFont(new Font("DejaVu Sans Light", Font.BOLD, 14)); // NOI18N
-        textLogs.setForeground(Color.white);
+        textLogs.setFont(fontProvider.getFont("default").deriveFont(Font.BOLD, 14));
+        textLogs.setForeground(colorProvider.getColor("colorPrimary"));
         textLogs.setRows(5);
         textLogs.setWrapStyleWord(true);
         textLogs.setBorder(null);
@@ -367,13 +327,21 @@ public class MainFrame extends JFrame {
 
         rootContainer.add(panelBody,BorderLayout.CENTER);
 
+        /* This frame Customization */
         setLocationRelativeTo(null);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setTitle("SRec Receiver");
-        setMinimumSize(new Dimension(600, 400));;
+        setMinimumSize(new Dimension(800, 600));
         getContentPane().add(rootContainer, BorderLayout.CENTER);
 
         pack();
     }
+
+    private void applyIcons() {
+        lblServerConnections.setIcon(imagesLoader.getImageIcon("connections"));
+        lblLog.setIcon(imagesLoader.getImageIcon("logs"));
+        btnStart.setIcon(imagesLoader.getImageIcon("start"));
+    }
+
 
 }
