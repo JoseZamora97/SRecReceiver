@@ -12,10 +12,16 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
 
+/**
+ * The type Images loader.
+ */
 public class ImagesLoader {
 
     private HashMap<String, Image> images;
 
+    /**
+     * Instantiates a new Images loader.
+     */
     public ImagesLoader () {
         images = new HashMap<>();
         try {
@@ -58,6 +64,12 @@ public class ImagesLoader {
         return resizedImg;
     }
 
+    /**
+     * Gets image icon.
+     *
+     * @param name the name
+     * @return the image icon
+     */
     public ImageIcon getImageIcon(String name) {
         return new ImageIcon(images.get(name));
     }

@@ -3,10 +3,18 @@ package Utils;
 import java.awt.Color;
 import java.util.HashMap;
 
+/**
+ * The type Color provider.
+ */
 public class ColorProvider {
 
     private HashMap<String, Color> colors;
 
+    /**
+     * Instantiates a new Color provider.
+     *
+     * @param propertiesLoader the properties loader
+     */
     public ColorProvider(PropertiesLoader propertiesLoader) {
         colors = new HashMap<>();
 
@@ -24,6 +32,12 @@ public class ColorProvider {
                 Color.decode(propertiesLoader.getProperty("colorAccentDark")));
     }
 
+    /**
+     * Gets color.
+     *
+     * @param color the color
+     * @return the color
+     */
     public Color getColor(String color) {
         return this.colors.get(color);
     }

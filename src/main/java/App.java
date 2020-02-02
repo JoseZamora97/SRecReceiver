@@ -5,8 +5,14 @@ import Utils.PropertiesLoader;
 
 import gui.GUIFrame;
 
+/**
+ * The type App.
+ */
 public class App {
 
+    /**
+     * Main.
+     */
     public static void main() {
         PropertiesLoader propManager = new PropertiesLoader();
 
@@ -18,6 +24,11 @@ public class App {
         GUIFrame.setVisible(true);
     }
 
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     */
     public static void main(String[] args) {
         java.awt.EventQueue.invokeLater(App::main);
     }

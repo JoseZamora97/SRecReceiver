@@ -6,10 +6,18 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Objects;
 
+/**
+ * The type Font provider.
+ */
 public class FontProvider {
 
     private HashMap<String, Font> fonts;
 
+    /**
+     * Instantiates a new Font provider.
+     *
+     * @param propertiesLoader the properties loader
+     */
     public FontProvider(PropertiesLoader propertiesLoader) {
         fonts = new HashMap<>();
 
@@ -44,6 +52,12 @@ public class FontProvider {
         fonts.put("nunito-bold", nunito_bold);
     }
 
+    /**
+     * Gets font.
+     *
+     * @param font the font
+     * @return the font
+     */
     public Font getFont(String font) {
         return this.fonts.get(font);
     }

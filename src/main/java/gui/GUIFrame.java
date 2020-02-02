@@ -1,5 +1,6 @@
 package gui;
 
+import SRecProtocol.Server.SRecServer;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
@@ -30,13 +31,15 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
-import SRecProtocol.Server.SRecServer;
 import Utils.ColorProvider;
 import Utils.FontProvider;
 import Utils.ImagesLoader;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 
+/**
+ * The type Gui frame.
+ */
 public class GUIFrame extends JFrame {
 
     private JLabel lblLog, lblQR, lblServerConnections, lblTitle;
@@ -56,12 +59,19 @@ public class GUIFrame extends JFrame {
     private ImagesLoader imagesLoader;
     private ColorProvider colorProvider;
 
+    /**
+     * Instantiates a new Gui frame.
+     *
+     * @param fontProvider  the font provider
+     * @param colorProvider the color provider
+     * @param imagesLoader  the images loader
+     */
     public GUIFrame(FontProvider fontProvider, ColorProvider colorProvider, ImagesLoader imagesLoader) {
         this.fontProvider = fontProvider;
         this.colorProvider = colorProvider;
         this.imagesLoader = imagesLoader;
 
-        this.sRecServer = new SRecServer(55555);
+        this.sRecServer = new SRecServer(0);
         this.listModel = new DefaultListModel<>();
 
         init();
@@ -114,7 +124,7 @@ public class GUIFrame extends JFrame {
 
                 sRecServer.startService();
 
-                lblQR.setIcon(generateQRCode(sRecServer.getConnectionDetails()));
+                lblQR.setIcon(generateQRCode("SRecReceiver:" + sRecServer.getConnectionDetails()));
                 lblQR.setVisible(true);
 
                 isServerRunning = !isServerRunning;
@@ -235,6 +245,7 @@ public class GUIFrame extends JFrame {
 
         /* Splitter Customization */
         serverConsAndLogsSplitter.setOrientation(JSplitPane.VERTICAL_SPLIT);
+        serverConsAndLogsSplitter.setDividerLocation(250);
 
         /* Panel Connections and QR Image Customization */
         panelServerConnectionsAndImageContainer.setLayout(new BorderLayout());
