@@ -31,6 +31,15 @@ public class ImagesLoader {
         }
     }
 
+    /**
+     * Load the images.
+     *
+     * <p>
+     *     load the images and fill the Map of images icons.
+     * </p>
+     *
+     * @throws IOException if the images doesnt exist.
+     */
     private void loadImages() throws IOException {
 
         ImageIcon ii;
@@ -45,6 +54,12 @@ public class ImagesLoader {
         images.put("logs", getScaledImage(ii.getImage(), 24, 24));
     }
 
+    /**
+     *
+     * @param resource path to the image.
+     * @return image icon of the resource loaded.
+     * @throws IOException if the images doesnt exist.
+     */
     private ImageIcon loadFromResources(String resource) throws IOException {
         return new ImageIcon(ImageIO.read(
                 Objects.requireNonNull(

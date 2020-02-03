@@ -35,6 +35,16 @@ public class FontProvider {
         }
     }
 
+    /**
+     * Load the custom fonts.
+     *
+     * <p>
+     *     Loads the fonts and fill the Map of fonts.
+     * </p>
+     *
+     * @throws IOException if the font file doesnt exist.
+     * @throws FontFormatException if the format font is incorrect.
+     */
     private void loadCustomFonts() throws IOException, FontFormatException {
 
         Font nunito = Font.createFont(Font.TRUETYPE_FONT,

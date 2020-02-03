@@ -24,6 +24,11 @@ public class PropertiesLoader {
         }
     }
 
+    /**
+     * Load the config.properties files.
+     *
+     * @throws IOException if the file doesnt exist.
+     */
     private void loadProperties() throws IOException {
         String PROP_FILENAME = "config.properties";
         InputStream is = getClass().getClassLoader().getResourceAsStream(PROP_FILENAME);

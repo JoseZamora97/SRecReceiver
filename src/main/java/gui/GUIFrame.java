@@ -77,7 +77,24 @@ public class GUIFrame extends JFrame {
         init();
     }
 
-    private void init() {
+    /**
+     * Initialization of all parts of the GUI
+     *
+     * <p>Such as:</p>
+     * <ul>
+     *     <li>All GUI pieces from Java Swing</li>
+     *     <li>Attach the standard output to jTextArea</li>
+     *     <li>Initialize all buttons and events listeners</li>
+     * </ul>
+     *
+     * <p>Also applies customize content to the GUI</p>
+     * <p>Such as:</p>
+     * <ul>
+     *     <li>Custom Fonts</li>
+     *     <li>Custom Icons for the buttons</li>
+     * </ul>
+     */
+    void init() {
         initComponents();
         initStdOutput();
         initListeners();
@@ -86,7 +103,24 @@ public class GUIFrame extends JFrame {
         applyIcons();
     }
 
-    private void initListeners(){
+    /**
+     * Initialization of all GUI listeners.
+     *
+     * <p>
+     *     This method initializes 2 listeners.
+     * </p>
+     * <ul>
+     *     <li>
+     *         In first place, it cares about the connections, by taking the alive connections from the Service
+     *         inside of the {@link SRecServer} and add the listener which detects changes in the list of the
+     *         connections {@link ObservableList}.
+     *     </li>
+     *     <li>
+     *         Also, add a listener to the Start Server button and creates an hover effect.
+     *     </li>
+     * </ul>
+     */
+    void initListeners(){
 
         ObservableList<InetAddress> obsListConnections = sRecServer
                 .getServerConnectionService().getAliveConnections();
@@ -116,40 +150,60 @@ public class GUIFrame extends JFrame {
         });
     }
 
+    /**
+     * Auxiliary method for Mouse Click listener.
+     */
     private void btnStartMouseClicked() {
         if(!isServerRunning){
-            try {
-                textLogs.setText("");
-                btnStart.setText("Stop");
-
-                sRecServer.startService();
-
-                lblQR.setIcon(generateQRCode("SRecReceiver:" + sRecServer.getConnectionDetails()));
-                lblQR.setVisible(true);
-
-                isServerRunning = !isServerRunning;
-
-            } catch (WriterException ex) {
-                ex.printStackTrace();
-            }
+            /* Clean the logs */
+            textLogs.setText("");
+            /* Change the button text */
+            btnStart.setText("Stop");
+            /* Initialize the Server Service */
+            sRecServer.startService();
+            /* Generate the icon for the connection and set it visible */
+            lblQR.setIcon(generateQRCode("SRecReceiver:" + sRecServer.getConnectionDetails()));
+            lblQR.setVisible(true);
         }
         else {
+            /* Stops the Server Service */
             sRecServer.stopService();
+            /* Change the button text */
             btnStart.setText("Start");
             lblQR.setVisible(false);
-            isServerRunning = !isServerRunning;
+        }
+
+        /* Change the server status */
+        isServerRunning = !isServerRunning;
+    }
+
+    /**
+     * Generate qr code image icon from the input text.
+     *
+     * @param text the text
+     * @return the image icon
+     */
+    ImageIcon generateQRCode(String text) {
+        try {
+
+            MultiFormatWriter mfw = new MultiFormatWriter();
+            BitMatrix bitMatrix = mfw.encode(text, BarcodeFormat.QR_CODE, 200, 200);
+            BufferedImage bi = MatrixToImageWriter.toBufferedImage(bitMatrix);
+
+            return new ImageIcon(bi);
+
+        } catch (WriterException ex) {
+
+            ex.printStackTrace();
+            return null;
+
         }
     }
 
-    private ImageIcon generateQRCode(String text) throws WriterException {
-        MultiFormatWriter mfw = new MultiFormatWriter();
-        BitMatrix bitMatrix = mfw.encode(text, BarcodeFormat.QR_CODE, 200, 200);
-        BufferedImage bi = MatrixToImageWriter.toBufferedImage(bitMatrix);
-
-        return new ImageIcon(bi);
-    }
-
-    private void applyCustomFonts() {
+    /**
+     * Apply custom fonts.
+     */
+    void applyCustomFonts() {
         lblServerConnections.setFont(fontProvider.getFont("nunito-bold").deriveFont(14f));
         lblLog.setFont(fontProvider.getFont("nunito-bold").deriveFont(14f));
         listConnections.setFont(fontProvider.getFont("nunito").deriveFont(12f));
@@ -158,7 +212,15 @@ public class GUIFrame extends JFrame {
         btnStart.setFont(fontProvider.getFont("nunito-bold").deriveFont(16f));
     }
 
-    private void initStdOutput() {
+    /**
+     * Init std output.
+     *
+     * <p>
+     *     It redirect the standard output to a {@link PrintStream}
+     *     overriding the write method of an {@link OutputStream}
+     * </p>
+     */
+    void initStdOutput() {
         PrintStream printStream = new PrintStream(new OutputStream(){
             @Override
             public void write(int i) {
@@ -169,7 +231,10 @@ public class GUIFrame extends JFrame {
         System.setOut(printStream);
     }
 
-    private void initComponents() {
+    /**
+     * Initialize GUI swing components.
+     */
+    void initComponents() {
 
         /* Containers */
         JPanel rootContainer = new JPanel();
@@ -348,11 +413,13 @@ public class GUIFrame extends JFrame {
         pack();
     }
 
-    private void applyIcons() {
+    /**
+     * Apply icons.
+     */
+    void applyIcons() {
         lblServerConnections.setIcon(imagesLoader.getImageIcon("connections"));
         lblLog.setIcon(imagesLoader.getImageIcon("logs"));
         btnStart.setIcon(imagesLoader.getImageIcon("start"));
     }
-
 
 }
