@@ -17,6 +17,7 @@ import java.awt.image.BufferedImage;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
+import java.nio.file.FileSystems;
 
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
@@ -159,6 +160,9 @@ public class GUIFrame extends JFrame {
             textLogs.setText("");
             /* Change the button text */
             btnStart.setText("Stop");
+            /* Print the output path */
+            System.out.println("(Service) Output path: " +
+                    FileSystems.getDefault().getPath(".").toAbsolutePath());
             /* Initialize the Server Service */
             sRecServer.startService();
             /* Generate the icon for the connection and set it visible */
