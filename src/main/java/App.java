@@ -1,9 +1,8 @@
-import Utils.ColorProvider;
-import Utils.FontProvider;
-import Utils.ImagesLoader;
-import Utils.PropertiesLoader;
-
-import gui.GUIFrame;
+import gui.*;
+import utils.ColorProvider;
+import utils.FontProvider;
+import utils.ImagesLoader;
+import utils.PropertiesLoader;
 
 /**
  * The type App.

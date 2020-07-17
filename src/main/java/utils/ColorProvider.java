@@ -1,4 +1,4 @@
-package Utils;
+package utils;
 
 import java.awt.Color;
 import java.util.HashMap;

@@ -32,11 +32,11 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
-import Utils.ColorProvider;
-import Utils.FontProvider;
-import Utils.ImagesLoader;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import utils.ColorProvider;
+import utils.FontProvider;
+import utils.ImagesLoader;
 
 /**
  * The type Gui frame.
@@ -235,7 +235,7 @@ public class GUIFrame extends JFrame {
         System.setOut(printStream);
     }
 
-    /**
+    /**-
      * Initialize GUI swing components.
      */
     void initComponents() {
